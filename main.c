@@ -34,8 +34,6 @@ void deepcopy(char estado[3][3], char copiaEstado[3][3]){
     return;
 }
 
-
-
 //Copia a matriz m1 e faz uma alteracao simples (duplica os valores) alterando a variavel novaMatriz
 //TODO2: usar essa funcao como base para criar a funcao sucessora, sera necessario adicionar novos parametros
 void cria_random(/*int m1[3][3], */char novaMatriz[3][3])
@@ -61,6 +59,10 @@ void cria_random(/*int m1[3][3], */char novaMatriz[3][3])
             do {
                 aleatorio = rand_int(49, 57);
                 repetido = 0;
+                if (aleatorio == 57)
+                {
+                    aleatorio = 96;
+                }
 
                 for (int h = 0; h < z; h++)
                 {
@@ -73,19 +75,46 @@ void cria_random(/*int m1[3][3], */char novaMatriz[3][3])
                     }
                 }guarda_rand[z] = aleatorio;
             } while (repetido);
-
-
-
             novaMatriz[i][j] = (char)aleatorio;
             //printf("@@@@@%c\n", (char)aleatorio);
            // char  = (char)integer_value;
-
-
             //guarda_rand[z] = aleatorio;
             z++;
         }
     }
 }
+
+void movimentos (char m[3][3],char novam[3][3])
+{
+    char mover;
+    printf("Digite w - cima\nd - direita\ns - baixo\na - esquerda para movimentar:\n\t");
+    scanf("%c", &mover);
+
+    switch (mover)
+    {
+    case 'w':
+        // cima
+        printf("cima");
+        break;
+    case 'd':
+        // direita
+        printf("direita");
+        //break;
+    case 's':
+        //baixo
+        printf("baixo");
+        break;
+    case 'a':
+        //esq
+        printf("esq");
+        break;
+        // Códig
+    }
+
+
+}
+
+
 //Soma os valores da matriz e verifica se a soma eh um numero par
 
 //Soma os valores da matriz e verifica se a soma eh um numero par
@@ -173,7 +202,7 @@ int main()
     }
 
 */
-
+    movimentos(m, m); //saber se ta entrando comando. falta fazer movimento i+1 ou i-1// j+1 ou j-1
 
     return 0;
 }
