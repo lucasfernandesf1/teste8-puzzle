@@ -9,20 +9,28 @@ static inline int rand_int(int a, int b)
 }
 
 //Imprime a variavel estado, que é uma matriz
-void printEstado(char estado[3][3])
+void printEstado(int estado[3][3])
 {
     for(int i=0; i<3; i++)
     {
         for(int j=0; j<3; j++)
         {
-            printf("%c\t",estado[i][j]);
+            if (estado[i][j] == 9)
+            {
+                printf("|   |");
+            }
+            else{
+                printf("| %d |",estado[i][j]);
+            }
+
         }
+        //printf("\n===========\n");
         printf("\n");
     }
     return;
 }
 
-void deepcopy(char estado[3][3], char copiaEstado[3][3]){
+void deepcopy(int estado[3][3], int copiaEstado[3][3]){
     for(int i=0; i<3; i++)
     {
         for(int j=0; j<3; j++)
@@ -35,7 +43,7 @@ void deepcopy(char estado[3][3], char copiaEstado[3][3]){
 
 //Copia a matriz m1 e faz uma alteracao simples (duplica os valores) alterando a variavel novaMatriz
 //TODO2: usar essa funcao como base para criar a funcao sucessora, sera necessario adicionar novos parametros
-void cria_random(/*int m1[3][3], */char novaMatriz[3][3], int *linhaVazio, int *colVazio)
+void cria_random(/*int m1[3][3], */int novaMatriz[3][3], int *linhaVazio, int *colVazio)
 {
     /*for (int i = 0; i < 3; i++)
         {
@@ -54,14 +62,13 @@ void cria_random(/*int m1[3][3], */char novaMatriz[3][3], int *linhaVazio, int *
         {
 
             int repetido;
-
             do {
-                aleatorio = rand_int(49, 57);
+                aleatorio = rand_int(1, 9);
                 repetido = 0;
-                if (aleatorio == 57)
+                /*if (aleatorio == 9)
                 {
                     aleatorio = 96;
-                }
+                }*/
 
                 for (int h = 0; h < z; h++)
                 {
@@ -74,7 +81,7 @@ void cria_random(/*int m1[3][3], */char novaMatriz[3][3], int *linhaVazio, int *
                     }
                 }guarda_rand[z] = aleatorio;
             } while (repetido);
-            novaMatriz[i][j] = (char)aleatorio;
+            novaMatriz[i][j] = (int)aleatorio;
             //guarda_rand[z] = aleatorio;
             z++;
             if (novaMatriz[i][j] == '`')
@@ -86,35 +93,62 @@ void cria_random(/*int m1[3][3], */char novaMatriz[3][3], int *linhaVazio, int *
         }
     }
 }
+void jogador_mov (int *mover)
+{
+    char mov;
+    printf("escolha qual peça vc quer mover: \nw - peça de cima\ns - peça de baixo\nd - peça da direita\na - peça da esquerda");
+    scanf("%c", &mov);
 
-void movimentos (char m[3][3], int *linha, int *col)
+    switch (mov)
+    {
+    case 'w':
+        // cima
+        mover = 1;
+        break;
+    case 'd':
+        // direita
+        mover = 2;
+        //break;
+    case 's':
+        //baixo
+        mover = 3;
+        break;
+    case 'a':
+        //esq
+        mover = 4;
+
+        break;
+        // Códig
+    }
+
+}
+
+void movimentos (int m[3][3],  int mover, int *linha, int *col)
 {
     int auxLinha, auxCol;
-    char mover;
-    printf("Digite w - cima\nd - direita\ns - baixo\na - esquerda\n para selceionar qual peça irá trocar com o vazio:\n\t");
-    scanf("%c", &mover);
+
 
     switch (mover)
     {
-    case 'w':
+    case 1:
         // cima
         // printf("cima");
         auxLinha = linha;
         linha -= 1;
         break;
-    case 'd':
+    case 2:
         // direita
         //printf("direita");
         auxCol = col;
         col += 1;
         //break;
-    case 's':
+    case 3:
         //baixo
         //printf("baixo");
         auxLinha = linha;
         linha +=1;
         break;
-    case 'a':
+    case 4:
         //esq
         //printf("esq");
         auxCol = col;
@@ -122,9 +156,12 @@ void movimentos (char m[3][3], int *linha, int *col)
         break;
         // Códig
     }
-     m[*linha][*col] = '`'; // nao ta atualizando ----!!!!!!
+     m[*linha][*col] = 9; // nao ta atualizando ----!!!!!!
+     printEstado(m);
 
 }
+
+
 
 //Soma os valores da matriz e verifica se a soma eh um numero par
 
@@ -153,29 +190,30 @@ void movimentos (char m[3][3], int *linha, int *col)
 
 int main()
 {
-    int linhavazia, colvazia;
+    srand(time(NULL));
+    int linhavazia, colvazia, movimento;
     //Usando printEstado
     printf("Imprimindo Matriz:\n");
-    char m[3][3] = {{49,50,51},{52,53,54},{55,56,57}};
+    int m[3][3] = {{1,2,3},{4,5,6},{7,8,9}};
     printEstado(m); //Notem que passo m diretamente, sem usar o &
 
     //Usando deepcopy
     printf("\nCopiando e imprimindo versão nova\n"); //-------------------
-    char moriginal[3][3] = {{49,50,51},{52,53,54},{55,56,57}};
-    char mnovo[3][3]; //Notem que nao inicializei mnovo
+    int moriginal[3][3] = {{1,2,3},{4,5,6},{7,8,9}};
+    int mnovo[3][3]; //Notem que nao inicializei mnovo
     deepcopy(moriginal, mnovo); //A ordem dos parametros eh essencial; quem inicializa os valores de mnovo eh a propria funcao
     printEstado(mnovo); //imprimindo para ver se está tudo certo
 
     //Alterando a matriz e gerando novo estado
     printf("\nAlterando e imprimindo versão alterada\n");
-    char moriginal2[3][3] = {{49,50,51},{52,53,54},{55,56,57}};
-    char malterada[3][3]; //Notem que nao inicializei malterada
+    int moriginal2[3][3] = {{1,2,3},{4,5,6},{7,8,9}};
+    int malterada[3][3]; //Notem que nao inicializei malterada
     cria_random(/*moriginal2, */malterada, &linhavazia, &colvazia); //A ordem dos parametros eh essencial; quem inicializa os valores de mnovo eh a propria funcao
     printEstado(malterada); //imprimindo para ver se está tudo certo
 
     //Alterando a matriz diversas vezes seguidas
     printf("\nAlterando a matriz 3 vezes seguidas e imprimindo\n");
-    printf("Matriz original:");
+    printf("Matriz original:\n");
     printEstado(m);
     printf("\nAlteradas RANDOM:\n");
     for(int i=0; i<3;i++)
@@ -185,6 +223,7 @@ int main()
         printEstado(m);
         printf("\n");
     }
+
 
     //verificando se a soma dos valores da matriz eh um numero par
     //Utilizarei as matrizes m (cuja soma eh impar) e malterada (cuja soma eh par)
@@ -214,7 +253,8 @@ int main()
     }
 
 */
-    movimentos(m, &linhavazia, &colvazia);
+    jogador_mov(movimento);
+    movimentos(m, movimento, &linhavazia, &colvazia);
 
     printEstado(m); //ta td errado não ta atualizando posição, não ta criando matrizes diferentes a cada compilação. Está salvando linha e coluna de vazio corretamente;;;
 
