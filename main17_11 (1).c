@@ -5,78 +5,39 @@
 #include <locale.h>
 #include <windows.h>
 
+#define TAM 500000
+
 static inline int rand_int(int a, int b)
 {
  return a + rand() % (b - a + 1);
 }
 
-typedef struct lista
+typedef struct v
 {
-    int info[3][3];
-    struct lista *prox;
-}No;
+    int m[3][3];
+} estado;
 
-typedef struct fila
-{
-    No *ini;
-    No *fim;
-} Fila;
+estado fila [TAM];
+int inicio = 0;
+int fim = 0;
 
-void inicializa_fila(Fila *f)
+void enfileira(estado e)
 {
-    f->ini = NULL;
-    f->fim = NULL;
+    fila[fim] = e;
+    fim = (fim + 1) % TAM;
 }
 
-void add_fila(Fila *f, int info[3][3])
+estado desenfileira()
 {
-    No *novo = malloc(sizeof(No));
-    for (int i = 0; i < 3; i++)
-        for (int j = 0; j < 3; j++)
-            novo->info[i][j] = info[i][j];
-
-    novo->prox = NULL;
-
-    if (f->fim == NULL)
-    {
-        f->ini = novo;
-        f->fim = novo;
-    }
-    else
-    {
-        f->fim->prox = novo;           // liga no último
-        f->fim = novo;                 // atualiza fim
-    }
-}
-void remove_fila(Fila *f, int out[3][3])
-{
-    if (f->ini == NULL)
-    {
-        printf("Fila vazia!\n");
-        return;
-    }
-
-    No *tmp = f->ini;
-
-    for (int i = 0; i < 3; i++)
-    {
-        for (int j = 0; j < 3; j++)
-        {                                       // copia a matriz do nó
-            out[i][j] = tmp->info[i][j];
-        }
-    }
-    f->ini = f->ini->prox;
-
-    if (f->ini == NULL)
-    {
-        f->fim = NULL;
-    }
-
-    free(tmp);
+    estado e = fila[inicio];
+    inicio = (inicio + 1) % TAM;
+    return e;
 }
 
-void cria_vetor_movimento (int m[3][3], int movitos[4], int *linha, int *col)
+void geraVetorMov (int m[3][3], int movitos[4], int *linha, int *col)
 {
+    movitos[0] = movitos[1] = movitos [2] = movitos[3] = 0;
+
         if (*linha == 0 )
         {
             movitos[2] = 1;
@@ -103,7 +64,15 @@ void cria_vetor_movimento (int m[3][3], int movitos[4], int *linha, int *col)
         {
             movitos[1] = 1;
         }
-        //falta chamar no main
+}
+
+void printfila(estado e)
+{
+    for (int i=0;i<3;i++) {
+        for (int j=0;j<3;j++) printf("%d ", e.m[i][j]);
+        printf("\n");
+    }
+    printf("\n");
 }
 
 void printEstado(int estado[3][3])
@@ -215,22 +184,10 @@ void jogador_mov (int *mover)
     printf("\n");
     switch (mov)
     {
-    case 'w':
-        // cima
-        *mover = 1;
-        break;
-    case 'd':
-        // direita
-        *mover = 2;
-        break;
-    case 's':
-        //baixo
-        *mover = 3;
-        break;
-    case 'a':
-        //esq
-        *mover = 4;
-        break;
+        case 'w': *mover = 1; break;
+        case 'd': *mover = 2; break;
+        case 's': *mover = 3; break;
+        case 'a': *mover = 4; break;
     }
 }
 
@@ -297,6 +254,24 @@ void interpreta_vetorMovimento (int V[4])
       num++;
     }
 }
+
+estado criaFilho(int movimento, estado pai, int linha, int coluna)
+{
+    estado novo = pai;
+    movimentos(novo.m, movimento, &linha, &coluna);
+    return novo;
+}
+
+void MoveBFS (int V[4], estado atual, int linha, int col)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        if (V[i] == 0) continue;
+        estado novo = criaFilho(V[i], atual, linha, col);
+        enfileira(novo);
+    }
+}
+
 int verifica_matriz(int m[3][3])
 {
     int verificacao=1;
@@ -319,19 +294,28 @@ int main()
 {
     printf("\n\t****************************************************");
     printf("\n\t**                                                **");
-    printf("\n\t**                 8-PUZZLE                       **");
+    printf("\n\t**                   8-PUZZLE                     **");
     printf("\n\t**                                                **");
     printf("\n\t****************************************************\n\n\n");
+
 
     setlocale(LC_ALL, "");
     srand(time(NULL));
     int linhavazia, colvazia, movimento;
     int m[3][3] = {{1,2,3},{4,5,6},{7,8,9}};
     int guarda_rand[9];
-    int V_ou_F;
+    int V_ou_F, sair;
     int heuristica=0;
     int moriginal2[3][3] = {{1,2,3},{4,5,6},{7,8,9}};
     int V[4];
+
+    while(1)
+    {
+    printf("\n\tDigite 0 para sair e qualquer coisa para continuar:\n\t");
+    scanf("%d", &sair);
+
+    if (sair==0){break;}
+
 
     printf("\n\tO tabuleiro gerado para você resolver é este:\n\n");
     do
@@ -344,6 +328,9 @@ int main()
     int escolhe;
     printf("\n\tEscolha se você quer resolver ou usar uma solução automática:\n\n\t1 para JOGAR\n\t2 para SOLUÇÃO AUTOMÁTICA\n\n\tDigite: ");
     scanf("%d", &escolhe);
+
+    estado atual;
+    deepcopy(m, atual.m);
 
     if (escolhe == 1)//caso tenha escolhido jogar vai rodar essa parte:
     {
@@ -368,16 +355,18 @@ int main()
 
         if(escolheDnv == 1)
         {
-            Fila *f;
-            cria_vetor_movimento(m, V, &linhavazia, &colvazia);
-            interpreta_vetorMovimento(V);
-            add_fila(f, m);
+            while(verifica_matriz(atual.m) != 1)
+            {
+                geraVetorMov(atual.m, V, &linhavazia, &colvazia);
+                interpreta_vetorMovimento(V);                           //FALTA PRINTAR
+                MoveBFS(V, atual, linhavazia, colvazia);
+            }
         }
     }
     else
     {
         printf("\n\n\tvocê digitou uma opção inválida\n");
     }
-
+    }
     return 0;
 }
